@@ -38,7 +38,7 @@ const NotificationScreen = (props) => {
                 activeOpacity={1}
               />
               <Text style={{ paddingHorizontal: 10 }}>
-              {auth.CurrentUser.name} Liked Your Post.
+              {auth.CurrentUser.displayName} Liked Your Post.
               </Text>
             </View>
           </Card>

@@ -12,7 +12,7 @@ const HeaderHome = (props) => {
             color: "#fff",
             onPress: props.DrawerFunction,
           }}
-          centerComponent={{ text: "The Office", style: { color: "#fff" } }}
+          centerComponent={{ text: "Blog App", style: { color: "#fff" } }}
           rightComponent={{
             icon: "lock-outline",
             color: "#fff",

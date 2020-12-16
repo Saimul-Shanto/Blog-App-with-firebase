@@ -7,6 +7,8 @@ import {AuthContext} from "../providers/AuthProvider";
 
 import {getDataJSON} from "../functions/AsyncStorageFunctions";
 
+import * as firebase from "firebase";
+
 const SignInScreen=(props)=>{
     console.log(props)
     const[Email,setEmail]=useState("");
@@ -42,19 +44,18 @@ const SignInScreen=(props)=>{
          icon={<AntDesign name="login" size={24} color="white" />}
          title="  Sign in"
          type="solid"
-         onPress={
-           async function(){
-            let UserData = await getDataJSON(Email);
-            if(UserData.password==Password){
-              auth.setIsLoggedIn(true);
-              auth.setCurrentUser(UserData);
-            }
-            else{
-              alert("Login Failed");
-              console.log(UserData); 
-            }
+         onPress={()=>{
+           firebase.auth().signInWithEmailAndPassword(Email,Password).
+           then((userCreds)=>{
+             auth.setIsLoggedIn(true);
+             auth.setCurrentUser(userCreds.user);
 
-         }}
+           })
+           .catch((error)=>{
+             alert(error);
+           });
+         }
+           }
          />
 
          <Button
@@ -64,6 +65,7 @@ const SignInScreen=(props)=>{
          onPress={
              function(){
                  props.navigation.navigate("SignUp");
+                
              }
          }
         

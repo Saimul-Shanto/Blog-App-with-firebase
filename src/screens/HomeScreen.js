@@ -18,45 +18,47 @@ import {
 import PostCard from "./../components/PostCard";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { AuthContext } from "../providers/AuthProvider";
-import { getPosts } from "./../requests/Posts";
-import {getUsers} from "./../requests/Users";  
+
+import {useNetInfo} from "@react-native-community/netinfo";
 
 import {storeDataJSON} from "../functions/AsyncStorageFunctions";
 import {getDataJSON} from "../functions/AsyncStorageFunctions";
+import * as firebase from "firebase";
+import "firebase/firestore";
 
 const HomeScreen = (props) => {
-  const [posts, setPosts] = useState("");
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
 
+  const netinfo = useNetInfo();
+  if(netinfo.type!="unknown" && !netinfo.isInternetReachable){
+    alert("No Internet");
+  }
+  const [posts, setPosts] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [input,setInput] = useState("");
   const [data, setData] = useState("");
 
   const loadPosts = async () => {
     setLoading(true);
-    const response = await getPosts();
-    if (response.ok) {
-      //setPosts(response.data);
-    }
-  };
-
-  const loadUsers = async () => {
-    const response = await getUsers();
-    if (response.ok) {
-      setUsers(response.data);
-    }
-    setLoading(false);
-  };
-  const getName = (id) => {
-    let Name = "";
-    users.forEach((element) => {
-      if (element.id == id) Name = element.name;
+    firebase.firestore().collection("post").orderBy("created_at","desc")
+    .onSnapshot((querySnapshot)=>{
+      let temp_posts = []
+      querySnapshot.forEach((doc)=>{
+        temp_posts.push({
+          id : doc.id,
+          data : doc.data(),
+        });
+      });
+      setPosts(temp_posts);
+      setLoading(false);
+    }).catch((error)=>{
+      setLoading(false);
+      alert(error);
     });
-    return Name;
   };
-
+  
+ 
   useEffect(() => {
     loadPosts();
-    loadUsers();
   }, []);
 
   if (!loading) {
@@ -72,7 +74,7 @@ const HomeScreen = (props) => {
                   props.navigation.toggleDrawer();
                 },
               }}
-              centerComponent={{ text: "The Office", style: { color: "#fff" } }}
+              centerComponent={{ text: "Blog App", style: { color: "#fff" } }}
               rightComponent={{
                 icon: "lock-outline",
                 color: "#fff",
@@ -87,39 +89,40 @@ const HomeScreen = (props) => {
               <Input
                 multiline
                 placeholder="What's On Your Mind?"
-                onChangeText={
-                  function(currentInput){
-                      setPosts(currentInput)
-  
-                  }
-              }
+                onChangeText={(currentText)=>{
+                  setInput(currentText)}}
+
+              
                 leftIcon={<Entypo name="pencil" size={24} color="black" />}
               />
-              <Button title="Post" type="outline" onPress={function () {
-                    let userPost = {
-                      user: auth.CurrentUser.Email,
-                      post: posts,
-                    };
-                    
-                    setData({posts});
-                    auth.CurrentUser.post=posts;
-                    storeDataJSON(auth.CurrentUser.Email, auth.CurrentUser);
-                    
-                    
+              <Button title="Post" type="outline" onPress={function(){
+                setLoading(true);
+                firebase.firestore().collection("post").add({
+                  userId: auth.CurrentUser.uid,
+                  body:input,
+                  author: auth.CurrentUser.displayName,
+                  created_at: firebase.firestore.Timestamp.now(),
+                  likes:[],
+                  comments:[],
+                }).then(()=>{
+                  setLoading(false);
+                  alert("PostId : " + auth.CurrentUser.uid);
+                }).catch((error)=>{
+                  setLoading(false);
+                  alert(error);
+                });               
               }} />
             </Card>
-
-            
-
             <FlatList
               data={posts}
               renderItem = {function ({item}){
-                return (
-                  
+                return ( 
                   <PostCard
-                    author={auth.CurrentUser.name}
-                    title={item.title} 
-                    body={auth.CurrentUser.post}
+                  
+                    author={item.data.author}
+                    //title={item.title} 
+                    
+                    body={item.data.body}
                   />
                 );
               }}

@@ -1,10 +1,12 @@
 import React,{useState} from "react";
-import {StyleSheet, View} from "react-native";
+import {StyleSheet, View,ImageBackground} from "react-native";
 import {Input, Button, Card} from "react-native-elements";
 import { FontAwesome } from '@expo/vector-icons';
 import { Ionicons,AntDesign } from '@expo/vector-icons';
+import * as firebase from "firebase";
+import "firebase/firestore";
 
-import {storeDataJSON} from "../functions/AsyncStorageFunctions";
+import { Entypo } from '@expo/vector-icons';
 
 const SignUpScreen=(props)=>{
     console.log(props)
@@ -13,9 +15,11 @@ const SignUpScreen=(props)=>{
     const[SID,setSID]=useState("");
     const[Email,setEmail]=useState("");
     const[Password,setPassword]=useState("");
+    const[PhoneNumber,setPhoneNumber]=useState("");
 
   return(
     <View style={styles.viewstyle}>
+        {/* <ImageBackground source={require("./../../assets/leaf.jpg")}></ImageBackground> */}
     <Card>
        <Card.Title> welcome</Card.Title>
        <Card.Divider/>
@@ -62,22 +66,55 @@ const SignUpScreen=(props)=>{
     }}
        />
 
+        <Input
+       placeholder="PhoneNumber"
+       leftIcon={<Entypo name="old-phone" size={24} color="black" />}
+       
+       onChangeText={
+        function(currentInput){
+            setPhoneNumber(currentInput);
+
+    }}
+       />
+
        <Button
        icon={<AntDesign name="user" size={24} color="white" />}
        title="  Sign up"
        type="solid"
-       onPress={
-           function(){
-            let currentUser={
-                name:Name,
-                sid:SID,
-                email:Email,
-                password:Password,
-                post:[]
-            };
-            storeDataJSON(Email,currentUser);
-            props.navigation.navigate("SignIn");
+       onPress={()=>{
+           if(Name && SID && Email && Password && PhoneNumber){
+               firebase
+               .auth()
+               .createUserWithEmailAndPassword(Email,Password)
+               .then((userCreds)=>{
+                   userCreds.user.updateProfile({displayName: Name})
+                   firebase
+                   .firestore()
+                   .collection("users")
+                   .doc(userCreds.user.uid)
+                   .set({
+                       name:Name,
+                       sid: SID,
+                       email: Email,
+                       phoneNumber:PhoneNumber,
 
+                   }).then(()=>{
+                       alert("Account created successfully");
+                       console.log(userCreds.user);
+                       props.navigation.navigate("SignIn");
+                       alert("UserID:" + userCreds.user.uid);
+                   })
+                   .catch((error)=>{
+                       alert(error);
+                   });
+               })
+               .catch((error)=>{
+                   alert(error);
+               });
+           }
+           else{
+               alert("Fields can't be empty!");
+           }
        }}
        />
 

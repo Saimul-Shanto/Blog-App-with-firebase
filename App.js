@@ -8,6 +8,8 @@ import HomeScreen from "./src/screens/HomeScreen";
 import SignInScreen from "./src/screens/SignIn";
 import SignUpScreen from "./src/screens/SignUpScreen";
 
+import * as firebase from "firebase";
+
 import {AuthContext,AuthProvider} from "./src/providers/AuthProvider";
 import NotificationScreen from "./src/screens/NotificationScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
@@ -18,6 +20,27 @@ const HomeStack = createStackNavigator();
 const AuthStack = createStackNavigator();
 const HomeTab = createMaterialBottomTabNavigator();
 const AppDrawer = createDrawerNavigator();
+
+
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCA1pbwwVlj5ErggAZ3OVfBZh8Mq04wajU",
+  authDomain: "blog-55504.firebaseapp.com",
+  databaseURL: "https://blog-55504.firebaseio.com",
+  projectId: "blog-55504",
+  storageBucket: "blog-55504.appspot.com",
+  messagingSenderId: "649162534789",
+  appId: "1:649162534789:web:3a9ca27d74fd1e58321eec"
+};
+if(!firebase.apps.length){
+  firebase.initializeApp(firebaseConfig);
+}
+
+
+
+
+
 
 const AppDrawerScreen=()=>{
   return(
